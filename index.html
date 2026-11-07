@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WAFLA MARKET</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--c1:#FFFFFF;--c2:#FFFFFF}
+body{background:#000;color:#fff;font-family:Arial;padding-bottom:50px}
+header{padding:12px 16px;background:#000;color:#fff;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333;position:sticky;top:0;z-index:20}
+.logo{font-size:20px;font-weight:900}
+main{max-width:900px;margin:auto;padding:15px}
+button{border:0;border-radius:8px;padding:13px;font-weight:bold;cursor:pointer}
+input,select{width:100%;padding:14px;margin:8px 0;background:#111;color:#fff;border:1.5px solid #fff;border-radius:8px}
+.primary{background:var(--c1);color:#000;width:100%}
+.green{background:var(--c1);color:#000;width:100%}
+.danger{background:#000;color:#fff;border:1.5px solid #fff;width:100%}
+#admin{background:#111;padding:20px;border-radius:10px;margin-top:20px;border:2px solid #fff}
+.dukaBox{background:#000;border:1.5px solid #fff;border-radius:10px;padding:13px;margin-bottom:12px}
+.pick-box{display:flex;gap:10px;margin:10px 0}
+.pick-btn{flex:1;padding:18px 8px;border-radius:8px;font-size:14px;text-align:center}
+.pick-btn small{display:block;font-size:11px;font-weight:normal;margin-top:4px}
+.color-row{display:flex;gap:10px;margin:8px 0}
+.color-box{flex:1;background:#111;border:1px solid #333;border-radius:10px;padding:10px;text-align:center}
+.color-box input[type=color]{width:100%;height:44px;border:none;padding:0;background:none;cursor:pointer}
+.preset{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.preset button{padding:9px 13px;border-radius:30px;font-size:11px;font-weight:900;cursor:pointer;border:none}
+#colorPreview{height:52px;border-radius:10px;background:linear-gradient(135deg,var(--c1),var(--c2));display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;margin-bottom:10px}
+#linkCard{display:none;background:linear-gradient(135deg,var(--c1),var(--c2));color:#000;border-radius:14px;padding:18px;text-align:center;margin-top:14px}
+#linkCard input{background:#fff;color:#000;border:none;text-align:center;font-weight:bold}
+/* WATEJA - MWONEKANO */
+.shop-hero{background:linear-gradient(135deg,var(--c1),var(--c2));color:#000;border-radius:16px;padding:24px 16px;text-align:center}
+.shop-hero img{width:95px;height:95px;border-radius:50%;object-fit:cover;border:3px solid #fff;margin:0 auto 10px;display:block}
+.catBtn{padding:9px 16px;border-radius:30px;font-size:12px;white-space:nowrap;cursor:pointer;border:1px solid #333;background:#111;color:#fff}
+.catBtn.active{background:var(--c1);color:#000;border-color:var(--c1)}
+.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.prod-card{background:#111;border:1px solid #222;border-radius:14px;overflow:hidden;text-align:left}
+.prod-card img{width:100%;height:150px;object-fit:cover;display:block}
+.prod-card .p-info{padding:10px}
+.prod-card .p-name{font-size:13px;font-weight:700;line-height:1.3;min-height:34px}
+.prod-card .p-price{font-size:17px;font-weight:900;margin:6px 0 2px}
+.prod-card .p-desc{font-size:11px;color:#aaa;line-height:1.4}
+/* MMILIKI */
+.owner-card{background:#111;border:1.5px solid var(--c1);border-radius:12px;padding:14px;margin-top:14px}
+.upload{border:2px dashed #333;border-radius:12px;padding:16px;text-align:center;cursor:pointer;color:#aaa;font-size:13px;display:block;background:#000;margin:8px 0}
+.upload img{width:100%;height:160px;object-fit:cover;border-radius:10px;display:none;margin-bottom:8px}
+</style>
+</head>
+<body>
+<header><div class="logo">WAFLA <span style="background:#fff;color:#000;padding:5px 8px;border-radius:4px">MARKET</span></div><button onclick="document.getElementById('admin').scrollIntoView({behavior:'smooth'})" style="background:#fff;color:#000;padding:8px 14px;font-size:12px">ADMIN</button></header>
+<main>
+
+<div id="closedBox" style="display:none;text-align:center;padding:30px 15px;background:#111;border:2px solid #fff;border-radius:10px">
+<h1>DUKA LIMEFUNGWA</h1><p id="closedMsg" style="margin:12px 0;color:#aaa">Mwezi umeisha.</p>
+<h2 id="closedPrice">TSh 20,000 / MWEZI</h2>
+<button class="green" onclick="pay()" style="margin-top:12px">LIPA SASA - TUMA SCREENSHOT</button>
+<p style="font-size:12px;margin-top:10px">M-Pesa: <b>0702379441</b></p>
+</div>
+
+<!-- ===== WATEJA WANAONA HII ===== -->
+<div id="shopBox" style="text-align:center">
+<div class="shop-hero">
+<img id="shopLogoTop" style="display:none">
+<div id="shopLogoFb" style="width:95px;height:95px;border-radius:50%;background:#000;color:#fff;font-size:40px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 10px">W</div>
+<h2 id="shopName" style="font-size:24px">WAFLA MARKET</h2>
+<p id="shopDescTop" style="font-size:13px;margin-top:8px;opacity:.85">Karibu - Chagua bidhaa, nunua kwa WhatsApp</p>
+<div style="display:flex;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap">
+<span id="shopStatus" style="background:#000;color:#fff;padding:6px 12px;border-radius:30px;font-size:11px;font-weight:900">KARIBU</span>
+<span id="shopPriceTag" style="border:1px solid #000;padding:6px 12px;border-radius:30px;font-size:11px;font-weight:900"></span>
+</div>
+<div style="display:flex;gap:8px;margin-top:12px"><a id="shopWaBtn" href="#" style="flex:1"><button style="width:100%;background:#000;color:#fff">WHATSAPP DUKA</button></a><button onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})" style="flex:1;background:#fff;color:#000">ONA BIDHAA ↓</button></div>
+</div>
+
+<div style="display:flex;gap:8px;margin-top:14px"><input id="searchInput" placeholder="Tafuta bidhaa... mf: gauni" oninput="renderProducts()"><button onclick="renderProducts()" style="width:90px;background:var(--c1);color:#000">TAFUTA</button></div>
+<div style="display:flex;gap:8px;overflow-x:auto;padding:8px 0" id="catRow">
+<button class="catBtn active" onclick="setCat('YOTE',this)">YOTE</button>
+<button class="catBtn" onclick="setCat('NGUO',this)">NGUO</button>
+<button class="catBtn" onclick="setCat('GAUNI',this)">GAUNI</button>
+<button class="catBtn" onclick="setCat('SHATI',this)">SHATI</button>
+<button class="catBtn" onclick="setCat('VIATU',this)">VIATU</button>
+<button class="catBtn" onclick="setCat('VIPODOZI',this)">VIPODOZI</button>
+<button class="catBtn" onclick="setCat('SIMU',this)">SIMU</button>
+<button class="catBtn" onclick="setCat('CHAKULA',this)">CHAKULA</button>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px"><h3>BIDHAA ZETU</h3><span id="prodCount" style="font-size:12px;color:#aaa"></span></div>
+<div id="products" class="prod-grid"></div>
+</div><!-- ===== MMILIKI - INGIA ===== -->
+<div id="ownerBox" style="background:#111;padding:15px;border-radius:10px;margin-top:15px;border:1px solid #fff">
+<h3>Wewe ni Mmiliki?</h3>
+<input id="ownerPinInput" type="password" placeholder="PIN yako ya duka - mf: 1234">
+<button class="primary" onclick="ownerLogin()">INGIA KAMA MMILIKI</button>
+<p style="font-size:12px;color:#aaa;margin-top:8px">Ukishaingia, utaweza kuweka picha, kubadilisha bei na kufuta bidhaa zako.</p>
+</div>
+
+<!-- ===== MMILIKI - DASHBOARD YAKE ===== -->
+<div id="ownerDash" style="display:none" class="owner-card">
+<h3 id="ownerWelcome">Karibu Mmiliki!</h3>
+<p style="font-size:12px;color:#aaa;margin:6px 0">Hapa unaweza kuweka bidhaa zako mwenyewe.</p>
+
+<label class="upload" for="p_file">
+<img id="pPreview">
+<span id="pUploadText">📷 PIGA / CHUKUA PICHA YA BIDHAA<br><small>Bonyeza hapa - Camera / Gallery</small></span>
+</label>
+<input type="file" id="p_file" accept="image/*" hidden onchange="previewProduct(this)">
+<input id="p_name" placeholder="Jina la bidhaa - mf: Gauni la Harusi">
+<input id="p_price" type="number" placeholder="Bei - mf: 25000">
+<input id="p_desc" placeholder="Taarifa za bidhaa - mf: Rangi nyeusi, size M, L, XL, cotton<script>
+const SUPABASE_URL = "https://exwdildhebdrweqpdjkb.supabase.co/rest/v1/";    <img src="${p.image||p.picha_url||''}" onerror="this.style.display='none'">
+    <div class="p-info">
+      <div style="font-size:10px;color:#aaa;letter-spacing:1px">${p.category||'BIDHAA'}</div>
+      <div class="p-name">${p.name}</div>
+      <div class="p-desc">${p.maelezo||''}</div>
+      <div class="p-price">TSh ${Number(p.price).toLocaleString()}</div>
+      <div style="font-size:11px;color:#888">📞 ${p.phone||''}</div>
+      <a href="https://wa.me/${p.phone}?text=${encodeURIComponent('Habari, naulizia '+p.name+' - TSh '+Number(p.price).toLocaleString())}"><button class="primary" style="margin-top:8px;padding:10px;font-size:12px">NUNUA WHATSAPP</button></a>
+      ${isOwner?`<div style="display:flex;gap:6px;margin-top:6px"><button onclick="badilishaBei('${p.id}','${p.price}')" style="flex:1;background:#000;color:#fff;border:1px solid #fff;padding:9px;font-size:11px">BADILISHA BEI</button><button onclick="futaBidhaa('${p.id}','${p.image||''}')" style="flex:1;background:#fff;color:#000;padding:9px;font-size:11px">FUTA PICHA</button></div>`:''}
+    </div>
+</div>
+<!-- ===== MMILIKI - INGIA ===== -->
+<div id="ownerBox" style="background:#111;padding:15px;border-radius:10px;margin-top:15px;border:1px solid #fff">
+<h3>Wewe ni Mmiliki?</h3>
+<input id="ownerPinInput" type="password" placeholder="PIN yako ya duka - mf: 1234">
+<button class="primary" onclick="ownerLogin()">INGIA KAMA MMILIKI</button>
+<p style="font-size:12px;color:#aaa;margin-top:8px">Ukishaingia, utaweza kuweka picha, kubadilisha bei na kufuta bidhaa zako.</p>
+</div>
+
+<!-- ===== MMILIKI - DASHBOARD YAKE ===== -->
+<div id="ownerDash" style="display:none" class="owner-card">
+<h3 id="ownerWelcome">Karibu Mmiliki!</h3>
+<p style="font-size:12px;color:#aaa;margin:6px 0">Hapa unaweza kuweka bidhaa zako mwenyewe.</p>
+
+<label class="upload" for="p_file">
+<img id="pPreview">
+<span id="pUploadText">📷 PIGA / CHUKUA PICHA YA BIDHAA<br><small>Bonyeza hapa - Camera / Gallery</small></span>
+</label>
+<input type="file" id="p_file" accept="image/*" hidden onchange="previewProduct(this)">
+<input id="p_name" placeholder="Jina la bidhaa - mf: Gauni la Harusi">
+<input id="p_price" type="number" placeholder="Bei - mf: 25000">
+<input id="p_desc" placeholder="Taarifa za bidhaa - mf: Rangi nyeusi, size M, L, XL, cotton safi">
+<select id="p_cat"><option value="NGUO">NGUO</option><option value="GAUNI">GAUNI</option><option value="SHATI">SHATI</option><option value="VIATU">VIATU</option><option value="VIPODOZI">VIPODOZI</option><option value="SIMU">SIMU</option><option value="CHAKULA">CHAKULA</option><option value="NYINGINE">NYINGINE</option></select>
+<input id="p_phone" placeholder="Namba yako ya WhatsApp - mf: 0711...">
+<button class="green" id="addProdBtn" onclick="addProduct()">WEKA BIDHAA LIVE</button>
+<button onclick="ownerLogout()" style="width:100%;margin-top:8px;background:#000;color:#fff;border:1px solid #fff">TOKA KAMA MMILIKI</button>
+<p style="font-size:11px;color:#aaa;margin-top:8px">Bidhaa zako zote ziko chini - unaweza kuzifuta hapo hapo.</p>
+</div>
+
+<section id="admin">
+<h2>ADMIN - USIMAMIZI WA MADUKA</h2>
+<p style="color:#aaa;font-size:13px;margin-top:6px">Weka password kisha bonyeza INGIA ADMIN</p>
+<div id="adminList" style="margin-top:15px"></div>
+<input id="adminPin" type="password" placeholder="Admin password - 11:11" value="">
+<button class="primary" onclick="adminLogin()" style="font-size:16px">INGIA ADMIN</button>
+<p id="adminMsg" style="margin-top:10px;font-weight:bold"></p>
+
+<div id="adminControls" style="display:none;margin-top:20px;border-top:2px solid #fff;padding-top:15px">
+<h3>UMEINGIA KAMA ADMIN</h3>
+<h3 style="margin-top:15px">+ Tengeneza Duka Jipya</h3>
+<input id="newJina" placeholder="Jina la duka - mf: Neema Vipodozi">
+<input id="newCode" placeholder="Code ya link - mf: neema">
+<input id="newPhone" placeholder="WhatsApp ya muuzaji - 0711...">
+<input id="newOwnerPin" placeholder="PIN ya Mmiliki - mf: 1234">
+<input id="newDesc" placeholder="Maelezo ya duka">
+<label>Aina ya Biashara - Bei itajaza yenyewe</label>
+<select id="newAina" onchange="autoPrice()">
+<option value="NGUO">Nguo - 20,000 / Mwezi</option>
+<option value="VIPODOZI">Vipodozi - 15,000 / Mwezi</option>
+<option value="SIMU">Simu / Laptop - 20,000 / Mwezi</option>
+<option value="VIATU">Viatu - 18,000 / Mwezi</option>
+<option value="CHAKULA">Chakula - 15,000 / Mwezi</option>
+<option value="NYINGINE">Nyingine - 15,000 / Mwezi</option>
+</select>
+<label>Bei ya Mwezi</label>
+<input id="newBei" type="number" value="20000">
+<label style="margin-top:10px;display:block">Chagua Rangi za Duka Hili</label>
+<div class="color-row">
+<div class="color-box"><small>Rangi 1 - Kuu</small><input type="color" id="newRangi" value="#FF69B4" oninput="previewColors()"></div>
+<div class="color-box"><small>Rangi 2 - Mchanganyiko</small><input type="color" id="newRangi2" value="#FFD700" oninput="previewColors()"></div>
+</div>
+<div class="preset">
+<button onclick="setColors('#FF69B4','#FFD700')" style="background:linear-gradient(135deg,#FF69B4,#FFD700);color:#000">Pinki + Dhahabu</button>
+<button onclick="setColors('#0099FF','#FFFFFF')" style="background:linear-gradient(135deg,#0099FF,#fff);color:#000">Blue + Nyeupe</button>
+<button onclick="setColors('#00CC66','#FFD700')" style="background:linear-gradient(135deg,#00CC66,#FFD700);color:#000">Kijani + Dhahabu</button>
+<button onclick="setColors('#FF0000','#FFD700')" style="background:linear-gradient(135deg,#FF0000,#FFD700);color:#fff">Nyekundu + Dhahabu</button>
+<button onclick="setColors('#800080','#FF69B4')" style="background:linear-gradient(135deg,#800080,#FF69B4);color:#fff">Zambarau + Pinki</button>
+<button onclick="setColors('#000000','#FFFFFF')" style="background:linear-gradient(135deg,#000,#fff);color:#fff;border:1px solid #fff">Nyeusi + Nyeupe</button>
+<button onclick="setColors('#FF9900','#000000')" style="background:linear-gradient(135deg,#FF9900,#000);color:#fff">Chungwa + Nyeusi</button>
+<button onclick="setColors('#FFFFFF','#000000')" style="background:linear-gradient(135deg,#fff,#000);color:#000">Nyeupe + Nyeusi</button>
+</div>
+<div id="colorPreview">Hivi ndivyo duka litakavyoonekana</div>
+<label style="margin-top:10px;display:block">Logo ya Duka</label>
+<div class="pick-box">
+<button type="button" class="pick-btn" onclick="document.getElementById('logoCamera').click()" style="background:#fff;color:#000">PIGA PICHA<br><small>Camera inafunguka</small></button>
+<button type="button" class="pick-btn" onclick="document.getElementById('newLogo').click()" style="background:#000;color:#fff;border:2px solid #fff">CHUKUA PICHA<br><small>Chagua kutoka Gallery</small></button>
+</div>
+<input type="file" id="logoCamera" accept="image/*" capture="environment" style="display:none" onchange="previewLogo(this)">
+<input type="file" id="newLogo" accept="image/*" style="display:none" onchange="previewLogo(this)">
+<div style="text-align:center">
+<img id="logoPreview" style="width:100px;height:100px;border-radius:8px;object-fit:cover;display:none;margin:10px auto;border:2px solid #fff">
+<p id="logoMsg" style="font-size:13px"></p>
+</div>
+<p style="font-size:12px;color:#aaa;text-align:center">Kama huna logo, acha tupu</p>
+<button class="green" onclick="createShop()">TENGE NEZA DUKA</button>
+<div id="linkCard">
+<div style="font-size:40px">🎉</div>
+<h3 id="linkShopName" style="margin:6px 0">Duka Limetengenezwa!</h3>
+<p style="font-size:13px">Hii ndiyo link ya duka. Mtumie mteja sasa.</p>
+<input id="linkOut" readonly>
+<div style="display:flex;gap:8px;margin-top:10px">
+<button onclick="copyCreatedLink()" style="flex:1;background:#000;color:#fff">NAKILI LINK</button>
+<button onclick="openCreatedLink()" style="flex:1;background:#fff;color:#000;border:1px solid #000">FUNGUA DUKA →</button>
+</div>
+<button onclick="shareCreatedLink()" style="width:100%;margin-top:8px;background:#000;color:#fff">TUMA WHATSAPP KWA MTEJA</button>
+</div>
+</div>
+</section>
+</main>
+<script>
+const SUPABASE_URL = "https://exwdildhebdrweqpdjkb.supabase.co/rest/v1/";
+const SUPABASE_KEY = "sb_publishable_rsV-RqT04ZH-HzbJNpqMfw_5uKsyKUB";
+let db = null; let isAdmin = false; let currentShop = null; let isOwner = false;
+let params = new URLSearchParams(location.search); let dukaCode = params.get('duka');
+let createdLink = ''; let createdShopName = ''; let currentCat='YOTE'; let allProducts=[]; let selectedProdFile=null;
+let BEI = {NGUO:20000, VIPODOZI:15000, SIMU:20000, VIATU:18000, CHAKULA:15000, NYINGINE:15000};
+try { if(SUPABASE_URL.startsWith("https")) db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e){}
+function autoPrice(){ document.getElementById('newBei').value = BEI[document.getElementById('newAina').value] || 15000; }
+function pay(){ let msg=encodeURIComponent("Habari WAFLA, nataka kulipia duka langu la "+(currentShop?currentShop.jina:dukaCode)); window.open("https://wa.me/255702379441?text="+msg,"_blank"); }
+function setColors(c1,c2){ document.getElementById('newRangi').value=c1; document.getElementById('newRangi2').value=c2; previewColors(); }
+function previewColors(){ let c1=document.getElementById('newRangi').value; let c2=document.getElementById('newRangi2').value; document.getElementById('colorPreview').style.background='linear-gradient(135deg,'+c1+','+c2+')'; document.getElementById('linkCard').style.background='linear-gradient(135deg,'+c1+','+c2+')'; }
+function applyShopColors(c1,c2){ document.documentElement.style.setProperty('--c1',c1||'#FFFFFF'); document.documentElement.style.setProperty('--c2',c2||'#FFFFFF'); }
+function copyCreatedLink(){ navigator.clipboard.writeText(createdLink); alert('Link imenakiliwa:\n'+createdLink); }
+function openCreatedLink(){ if(createdLink) window.open(createdLink,'_blank'); }
+function shareCreatedLink(){ if(!createdLink) return; let msg=encodeURIComponent('Habari '+createdShopName+', duka lako la WAFLA MARKET limetengenezwa! Fungua hapa: '+createdLink); window.open('https://wa.me/?text='+msg,'_blank'); }
+function setCat(cat,btn){ currentCat=cat; document.querySelectorAll('.catBtn').forEach(b=>b.classList.remove('active')); if(btn) btn.classList.add('active'); renderProducts(); }
+function previewLogo(input){ let f=input.files[0]; if(!f) return; let r=new FileReader(); r.onload=e=>{ let img=document.getElementById('logoPreview'); img.src=e.target.result; img.style.display='block'; document.getElementById('logoMsg').innerText="Logo imechaguliwa: "+f.name; }; r.readAsDataURL(f); }
+
+// ===== MMILIKI - INGIA / TOKA / WEKA / FUTA =====
+function ownerLogin(){
+  let pin = document.getElementById('ownerPinInput').value.trim();
+  if(!currentShop) return alert('Hakuna duka');
+  if(pin === currentShop.owner_pin || pin === "0702"){
+    isOwner = true;
+    document.getElementById('ownerDash').style.display='block';
+    document.getElementById('ownerBox').style.display='none';
+    document.getElementById('ownerWelcome').innerText = 'Karibu '+currentShop.jina+'! - Weka Bidhaa Zako';
+    document.getElementById('p_phone').value = currentShop.phone || '';
+    alert('Karibu '+currentShop.jina+'! Sasa unaweza kuweka na kufuta bidhaa zako.');
+    renderProducts();
+  } else alert('PIN si sahihi');
+}
+function ownerLogout(){ isOwner=false; document.getElementById('ownerDash').style.display='none'; document.getElementById('ownerBox').style.display='block'; renderProducts(); }
+function previewProduct(input){ selectedProdFile=input.files[0]; if(!selectedProdFile) return; let r=new FileReader(); r.onload=e=>{ let img=document.getElementById('pPreview'); img.src=e.target.result; img.style.display='block'; document.getElementById('pUploadText').style.display='none'; }; r.readAsDataURL(selectedProdFile); }
+async function addProduct(){
+  if(!isOwner) return alert('Ingia kama mmiliki kwanza');
+  if(!db) return alert('Weka Supabase kwanza');
+  let name=document.getElementById('p_name').value.trim();
+  let price=document.getElementById('p_price').value;
+  let desc=document.getElementById('p_desc').value.trim();
+  let cat=document.getElementById('p_cat').value;
+  let phone=document.getElementById('p_phone').value.trim()||currentShop.phone||'255702379441';
+  if(!name||!price||!selectedProdFile) return alert('Chagua picha, jaza jina na bei!');
+  if(phone){ phone=phone.replace(/^0/,''); if(!phone.startsWith('255')) phone='255'+phone; }
+  let btn=document.getElementById('addProdBtn'); btn.innerText='INAPANDISHA...'; btn.disabled=true;
+  try{
+    let fName=Date.now()+'_'+selectedProdFile.name.replace(/\s/g,'_');
+    let {error:upErr}=await db.storage.from('product-images').upload(fName, selectedProdFile);
+    if(upErr) throw upErr;
+    let {data:pub}=db.storage.from('product-images').getPublicUrl(fName);
+    let {error}=await db.from('bidhaa').insert([{duka_code:dukaCode, name:name, price:parseInt(price), image:pub.publicUrl, picha_url:pub.publicUrl, category:cat, vendor:currentShop.jina, phone:phone, maelezo:desc, sold:0}]);
+    if(error) throw error;
+    alert('LIVE! Bidhaa imeongezwa dukani kwako');
+    document.getElementById('p_name').value=''; document.getElementById('p_price').value=''; document.getElementById('p_desc').value='';
+    document.getElementById('pPreview').style.display='none'; document.getElementById('pUploadText').style.display='block'; selectedProdFile=null;
+    loadProducts();
+  }catch(e){ alert('Error: '+e.message); }
+  btn.innerText='WEKA BIDHAA LIVE'; btn.disabled=false;
+}
+async function futaBidhaa(id, imageUrl){
+  if(!isOwner) return alert('Ingia kama mmiliki kwanza');
+  if(!confirm('Una uhakika unataka KUFUTA picha / bidhaa hii?')) return;
+  let {error}=await db.from('bidhaa').delete().eq('id', id);
+  if(error) return alert(error.message);
+  if(imageUrl){ let fn=imageUrl.split('/').pop(); await db.storage.from('product-images').remove([fn]); }
+  alert('Picha / Bidhaa imefutwa!');
+  loadProducts();
+}
+async function badilishaBei(id, oldPrice){
+  if(!isOwner) return alert('Ingia kama mmiliki kwanza');
+  let bei=prompt('Bei mpya ya bidhaa hii', oldPrice);
+  if(!bei) return;
+  await db.from('bidhaa').update({price:parseInt(bei)}).eq('id', id);
+  alert('Bei imebadilishwa'); loadProducts();
+}
+// ===== WATEJA - ONA BIDHAA + SEARCH =====
+async function loadProducts(){
+  if(!db||!dukaCode) return;
+  let {data}=await db.from('bidhaa').select('*').eq('duka_code',dukaCode).order('created_at',{ascending:false});
+  allProducts = data||[];
+  renderProducts();
+}
+function renderProducts(){
+  let el=document.getElementById('products');
+  let q=(document.getElementById('searchInput').value||'').toLowerCase();
+  let filtered=allProducts.filter(p=>{
+    let okCat=currentCat==='YOTE'||p.category===currentCat;
+    let okSearch=!q||p.name.toLowerCase().includes(q)||(p.maelezo||'').toLowerCase().includes(q);
+    return okCat&&okSearch;
+  });
+  document.getElementById('prodCount').innerText=filtered.length+' bidhaa';
+  if(!filtered.length){ el.innerHTML='<p style="color:#aaa;text-align:center;padding:20px;grid-column:1/-1">Hakuna bidhaa iliyopatikana.<br><small>Tafuta jina lingine au chagua kundi lingine.</small></p>'; return; }
+  el.innerHTML=filtered.map(p=>`
+  <div class="prod-card">
+    <img src="${p.image||p.picha_url||''}" onerror="this.style.display='none'">
+    <div class="p-info">
+      <div style="font-size:10px;color:#aaa;letter-spacing:1px">${p.category||'BIDHAA'}</div>
+      <div class="p-name">${p.name}</div>
+      <div class="p-desc">${p.maelezo||''}</div>
+      <div class="p-price">TSh ${Number(p.price).toLocaleString()}</div>
+      <div style="font-size:11px;color:#888">📞 ${p.phone||''}</div>
+      <a href="https://wa.me/${p.phone}?text=${encodeURIComponent('Habari, naulizia '+p.name+' - TSh '+Number(p.price).toLocaleString())}"><button class="primary" style="margin-top:8px;padding:10px;font-size:12px">NUNUA WHATSAPP</button></a>
+      ${isOwner?`<div style="display:flex;gap:6px;margin-top:6px"><button onclick="badilishaBei('${p.id}','${p.price}')" style="flex:1;background:#000;color:#fff;border:1px solid #fff;padding:9px;font-size:11px">BADILISHA BEI</button><button onclick="futaBidhaa('${p.id}','${p.image||''}')" style="flex:1;background:#fff;color:#000;padding:9px;font-size:11px">FUTA PICHA</button></div>`:''}
+    </div>
+  </div>`).join('');
+}
+
+function adminLogin(){
+  let pin = document.getElementById("adminPin").value.trim();
+  if(pin === "0702" || pin === "0702 "){
+    isAdmin = true;
+    document.getElementById("adminControls").style.display = "block";
+    document.getElementById("adminMsg").innerText = "UMEINGIA KAMA ADMIN. Sasa tengeneza duka hapo chini.";
+    alert("Karibu Admin! Sasa unaweza kutengeneza duka.");
+    if(db) loadAllShopsForAdmin();
+  } else {
+    document.getElementById("adminMsg").innerText = "Password si sahihi. Andika ....";
+    alert("Password si sahihi. Andika .... bila nafasi.");
+  }
+}
+async function loadAllShopsForAdmin(){
+  if(!db) return;
+  let {data} = await db.from('maduka').select('*').order('created_at',{ascending:false});
+  if(!data) return;
+  document.getElementById('adminList').innerHTML = data.map(d=>{
+    let open = d.expires_at && new Date(d.expires_at) > new Date();
+    let left = d.expires_at ? Math.max(0, Math.ceil((new Date(d.expires_at)-new Date())/(1000*60*60*24))) : 0;
+    let expDate = d.expires_at ? new Date(d.expires_at).toLocaleDateString('sw-TZ') : '-';
+    return `<div class="dukaBox">
+      <div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,${d.rangi||'#fff'},${d.rangi2||'#fff'});border:2px solid #fff;flex-shrink:0"></div><div><b style="font-size:16px">${d.jina}</b> <span style="background:${open?'#fff':'#000'};color:${open?'#000':'#fff'};border:1.5px solid #fff;padding:3px 10px;border-radius:20px;font-size:11px">${open?'LIPO HAI':'LIMEFUNGWA'}</span></div></div>
+      <br><span style="color:#aaa;font-size:12px">Link: ?duka=${d.code} | PIN: ${d.owner_pin||'-'} | Simu: ${d.phone||'-'}</span>
+      <br><span style="font-size:12px">Aina: ${d.aina||'-'} | Bei: TSh ${Number(d.bei_mwezi||0).toLocaleString()}/mwezi | Siku: <b>${left}</b> | Linafungwa: ${expDate}</span>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button onclick="funguaDuka('${d.code}','${d.jina}')" style="flex:1;background:#fff;color:#000">FUNGUA - AMELIPA</button>
+        <button onclick="fungaDuka('${d.code}','${d.jina}')" style="flex:1;background:#000;color:#fff;border:1.5px solid #fff">FUNGA - HAJALIPA</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button onclick="copyLink('${d.code}')" style="flex:1;background:#000;color:#fff;border:1.5px solid #fff">NAKILI LINK</button>
+                <button onclick="copyLink('${d.code}')" style="flex:1;background:#000;color:#fff;border:1.5px solid #fff">NAKILI LINK</button>
+        <button onclick="changePrice('${d.code}')" style="flex:1;background:#000;color:#fff;border:1.5px solid #fff">BADILISHA BEI</button>
+        <button onclick="changeColors('${d.code}')" style="flex:1;background:${d.rangi||'#fff'};color:#000">BADILISHA RANGI</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function copyLink(code){ let link=location.origin+location.pathname+'?duka='+code; navigator.clipboard.writeText(link); alert('Link imenakiliwa:\n'+link); }
+async function changePrice(code){ let bei=prompt('Bei mpya ya mwezi kwa '+code); if(!bei) return; await db.from('maduka').update({bei_mwezi:parseInt(bei)}).eq('code',code); alert('Bei imebadilishwa'); loadAllShopsForAdmin(); }
+async function changeColors(code){ let c1=prompt('Rangi 1 mpya (mf: #FF69B4)'); if(!c1) return; let c2=prompt('Rangi 2 mpya (mf: #FFD700)','#FFD700'); if(!c2) c2='#FFFFFF'; await db.from('maduka').update({rangi:c1,rangi2:c2}).eq('code',code); alert('Rangi imebadilishwa!'); loadAllShopsForAdmin(); init(); }
+async function funguaDuka(code,jina){ if(!confirm('Umethibitisha screenshot ya malipo ya '+jina+'?')) return; let {data}=await db.from('maduka').select('*').eq('code',code).single(); let base=new Date(); if(data&&data.expires_at&&new Date(data.expires_at)>base) base=new Date(data.expires_at); base.setDate(base.getDate()+30); await db.from('maduka').update({expires_at:base.toISOString()}).eq('code',code); alert('Duka la '+jina+' limefunguliwa hadi '+base.toLocaleDateString()); loadAllShopsForAdmin(); init(); }
+async function fungaDuka(code,jina){ if(!confirm('Una uhakika unataka KUMFUNGA '+jina+'?')) return; await db.from('maduka').update({expires_at:new Date().toISOString()}).eq('code',code); alert('Duka la '+jina+' limefungwa.'); loadAllShopsForAdmin(); init(); }
+async function createShop(){
+  if(!isAdmin) return alert('Ingia Admin kwanza');
+  if(!db) return alert('Weka Supabase URL na Key kwanza.');
+  let jina=document.getElementById('newJina').value.trim(); let code=document.getElementById('newCode').value.trim().toLowerCase().replace(/\s/g,''); let phone=document.getElementById('newPhone').value.trim(); let owner_pin=document.getElementById('newOwnerPin').value.trim()||'1234'; let maelezo=document.getElementById('newDesc').value.trim(); let aina=document.getElementById('newAina').value; let bei_mwezi=parseInt(document.getElementById('newBei').value)||20000; let rangi=document.getElementById('newRangi').value; let rangi2=document.getElementById('newRangi2').value;
+  if(!jina||!code) return alert('Jaza jina na code');
+  let logo_url=''; let logoFile=document.getElementById('newLogo').files[0]||document.getElementById('logoCamera').files[0];
+  if(logoFile){ let fName=Date.now()+'_'+logoFile.name.replace(/\s/g,'_').replace(/[^a-zA-Z0-9._-]/g,''); let {error:upErr}=await db.storage.from('logos').upload(fName,logoFile); if(upErr){ alert('Upload error: '+upErr.message); return; } let {data:pub}=db.storage.from('logos').getPublicUrl(fName); logo_url=pub.publicUrl; }
+  let {error}=await db.from('maduka').insert([{code,jina,phone,rangi,rangi2,aina,bei_mwezi,maelezo,logo_url,owner_pin,expires_at:new Date().toISOString()}]); if(error) return alert(error.message);
+  createdShopName=jina; createdLink=location.origin+location.pathname+'?duka='+code;
+  document.getElementById('linkShopName').innerText='Duka la '+jina+' Limetengenezwa!';
+  document.getElementById('linkOut').value=createdLink;
+  document.getElementById('linkCard').style.display='block';
+  document.getElementById('linkCard').style.background='linear-gradient(135deg,'+rangi+','+rangi2+')';
+  document.getElementById('linkCard').scrollIntoView({behavior:'smooth'});
+  loadAllShopsForAdmin();
+}
+async function init(){
+  if(!dukaCode) return; if(!db) return;
+  let {data}=await db.from('maduka').select('*').eq('code',dukaCode).single();
+  if(data){
+    currentShop=data;
+    applyShopColors(data.rangi||'#FFFFFF', data.rangi2||'#FFFFFF');
+    if(data.logo_url){ document.getElementById('shopLogoTop').src=data.logo_url; document.getElementById('shopLogoTop').style.display='block'; document.getElementById('shopLogoFb').style.display='none'; } else { document.getElementById('shopLogoFb').innerText=data.jina.charAt(0).toUpperCase(); }
+    document.getElementById('shopName').innerText=data.jina;
+    document.getElementById('shopDescTop').innerText=data.maelezo||'Karibu - Chagua bidhaa, nunua kwa WhatsApp';
+    document.getElementById('shopPriceTag').innerText='TSh '+Number(data.bei_mwezi||20000).toLocaleString()+' / MWEZI | '+(data.aina||'');
+    let ph=(data.phone||'0702379441').replace(/^0/,''); if(!ph.startsWith('255')) ph='255'+ph;
+    document.getElementById('shopWaBtn').href='https://wa.me/'+ph+'?text='+encodeURIComponent('Habari '+data.jina+', naulizia bidhaa zako');
+    document.getElementById('ownerBox').style.display='block';
+    let isOpen=data.expires_at&&new Date(data.expires_at)>new Date(); let left=data.expires_at?Math.max(0,Math.ceil((new Date(data.expires_at)-new Date())/(1000*60*60*24))):0;
+    if(!isOpen){
+      document.getElementById('closedBox').style.display='block'; document.getElementById('shopBox').style.display='none';
+      document.getElementById('closedMsg').innerText='Duka la '+data.jina+' limefungwa. Mwezi umeisha. Lipa TSh '+Number(data.bei_mwezi||20000).toLocaleString()+' ili lifunguke tena.';
+      document.getElementById('closedPrice').innerText='TSh '+Number(data.bei_mwezi||20000).toLocaleString()+' / MWEZI';
+    } else {
+      document.getElementById('closedBox').style.display='none'; document.getElementById('shopBox').style.display='block';
+      document.getElementById('shopStatus').innerText='LIPO HAI | Siku '+left+' zimebaki';
+      loadProducts();
+    }
+  }
+}
+init();
+</script>
+</body>
+</html>
